@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Clone Archive</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2d3436;
+            --accent: #0984e3;
+            --bg: #f8f9fa;
+            --card-bg: #ffffff;
+            --text: #2d3436;
+            --text-light: #636e72;
+            --border: #e2e8f0;
+            --success: #00b894;
+            --warm: #e17055;
+            --cold: #74b9ff;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg); color: var(--text); line-height: 1.5; }
+
+        /* Header */
+        header { text-align: center; padding: 60px 20px 40px; background: #fff; border-bottom: 1px solid var(--border); margin-bottom: 30px; }
+        h1 { font-weight: 700; font-size: 2.2rem; margin-bottom: 8px; letter-spacing: -0.5px; color: var(--primary); }
+        p.subtitle { color: var(--text-light); font-size: 1rem; max-width: 600px; margin: 0 auto; }
+
+        /* Controls */
+        .controls { max-width: 1200px; margin: 0 auto 30px; padding: 0 20px; display: flex; flex-direction: column; gap: 15px; align-items: center; }
+        .search-row { display: flex; width: 100%; max-width: 800px; gap: 10px; flex-wrap: wrap; }
+        
+        input[type="text"] {
+            flex: 1; padding: 14px 20px; border: 1px solid #ced6e0; border-radius: 50px; font-size: 1rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.03); outline: none; transition: all 0.3s;
+        }
+        input[type="text"]:focus { border-color: var(--accent); box-shadow: 0 4px 10px rgba(9, 132, 227, 0.1); }
+
+        select {
+            padding: 0 20px; border: 1px solid #ced6e0; border-radius: 50px; background: white; cursor: pointer; height: 50px; font-size: 0.9rem;
+        }
+
+        /* Tabs */
+        .filter-group { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+        .tab {
+            padding: 8px 16px; border-radius: 20px; border: 1px solid #dfe6e9; cursor: pointer;
+            font-size: 0.85rem; background: white; transition: all 0.2s; user-select: none;
+        }
+        .tab:hover { background: #f1f2f6; }
+        .tab.active { background: var(--primary); color: white; border-color: var(--primary); }
+
+        /* Grid */
+        .grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 25px;
+            max-width: 1280px; margin: 0 auto; padding: 0 20px 80px;
+        }
+
+        /* Card */
+        .card {
+            background: var(--card-bg); border-radius: 16px; padding: 24px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.02); border: 1px solid var(--border);
+            transition: transform 0.2s, box-shadow 0.2s; display: flex; flex-direction: column;
+            position: relative; overflow: hidden;
+        }
+        .card:hover { transform: translateY(-4px); box-shadow: 0 12px 25px rgba(0,0,0,0.06); border-color: #b2bec3; }
+
+        .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px; }
+        
+        .match-badge {
+            background: #e6f7f2; color: var(--success); padding: 5px 10px; border-radius: 8px;
+            font-size: 0.75rem; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase;
+        }
+
+        .perfume-name { font-size: 1.25rem; font-weight: 700; color: var(--primary); line-height: 1.3; margin-bottom: 4px; }
+        .perfume-brand { font-size: 0.85rem; color: var(--text-light); text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
+        
+        .comparison-box {
+            background: #f1f2f6; border-radius: 12px; padding: 15px; margin: 15px 0;
+            display: flex; flex-direction: column; gap: 4px;
+        }
+        .comparison-label { font-size: 0.75rem; color: var(--text-light); text-transform: uppercase; font-weight: 600; }
+        .og-name { font-size: 1rem; font-weight: 500; color: var(--primary); }
+
+        .tags { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+        .tag { font-size: 0.8rem; padding: 4px 10px; border-radius: 6px; background: #fafafa; border: 1px solid #eee; color: var(--text-light); display: flex; align-items: center; gap: 5px; }
+
+        .buy-btn {
+            margin-top: auto; width: 100%; padding: 14px; border: none; border-radius: 10px;
+            background: #232f3e; /* Amazon Dark Blue/Black */
+            color: white; font-weight: 600; font-size: 0.95rem; cursor: pointer;
+            text-decoration: none; text-align: center; transition: background 0.2s;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        .buy-btn:hover { background: #131921; }
+        .buy-btn span { color: #FF9900; font-weight: 800; } /* Amazon Orange Text */
+
+        /* Gender/Weather Indicators */
+        .gender-male { color: #0984e3; }
+        .gender-female { color: #e84393; }
+        .gender-unisex { color: #6c5ce7; }
+        
+        /* Footer Info */
+        .education { background: white; border-top: 1px solid var(--border); padding: 80px 20px; margin-top: 40px; }
+        .edu-grid { max-width: 1000px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 40px; }
+        .edu-col h3 { font-size: 1.1rem; margin-bottom: 15px; }
+        .edu-col p { color: var(--text-light); font-size: 0.9rem; margin-bottom: 10px; }
+        .conc-bar { display: flex; height: 8px; background: #eee; border-radius: 4px; margin: 15px 0 5px; overflow: hidden; }
+        .conc-fill { height: 100%; background: var(--primary); }
+
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>The Clone Archive</h1>
+    <p class="subtitle">The most comprehensive database of high-quality perfume clones available in India.</p>
+</header>
+
+<div class="controls">
+    <div class="search-row">
+        <input type="text" id="searchInput" placeholder="Search perfume, brand, or notes (e.g., 'Vanilla', 'Office')...">
+        <select id="sortSelect">
+            <option value="popularity">🔥 Most Popular</option>
+            <option value="similarity">🎯 Highest Similarity</option>
+            <option value="price_asc">💰 Price: Low to High</option>
+            <option value="price_desc">💎 Price: High to Low</option>
+        </select>
+    </div>
+    
+    <div class="filter-group">
+        <div class="tab active" data-type="season" data-val="all">All Seasons</div>
+        <div class="tab" data-type="season" data-val="Summer">☀️ Summer</div>
+        <div class="tab" data-type="season" data-val="Winter">❄️ Winter</div>
+        <div class="tab" data-type="season" data-val="All Year">♾️ All Year</div>
+    </div>
+    <div class="filter-group">
+        <div class="tab active" data-type="gender" data-val="all">All Genders</div>
+        <div class="tab" data-type="gender" data-val="Male">♂️ Men</div>
+        <div class="tab" data-type="gender" data-val="Female">♀️ Women</div>
+        <div class="tab" data-type="gender" data-val="Unisex">⚥ Unisex</div>
+    </div>
+</div>
+
+<div class="grid" id="grid">
+    </div>
+
+<div class="education">
+    <div class="edu-grid">
+        <div class="edu-col">
+            <h3>Concentration Guide</h3>
+            <p><strong>Parfum / Extrait</strong> (20-30% Oil)</p>
+            <div class="conc-bar"><div class="conc-fill" style="width: 100%"></div></div>
+            <p style="font-size: 0.8rem">Lasts 10-12+ Hours. Best for long days.</p>
+            
+            <p style="margin-top:15px"><strong>Eau de Parfum (EDP)</strong> (15-20% Oil)</p>
+            <div class="conc-bar"><div class="conc-fill" style="width: 75%"></div></div>
+            <p style="font-size: 0.8rem">Lasts 7-9 Hours. The standard for clones.</p>
+        </div>
+        
+        <div class="edu-col">
+            <h3>Clone Terminology</h3>
+            <p><strong>Clone:</strong> A scent designed to smell 90%+ similar to a specific designer/niche fragrance.</p>
+            <p><strong>Twist:</strong> Starts similar to the original but dries down into something unique (e.g., Afnan Turathi Blue).</p>
+            <p><strong>Maceration:</strong> Many Middle Eastern clones need to sit in a dark cupboard for 2-4 weeks after the first few sprays to reach full potency.</p>
+        </div>
+
+        <div class="edu-col">
+            <h3>Top Brands in India</h3>
+            <p><strong>Lattafa / Maison Alhambra:</strong> Best value for money. Huge variety.</p>
+            <p><strong>Armaf:</strong> Higher price, but often "Beast Mode" performance (e.g., CDNIM).</p>
+            <p><strong>Afnan:</strong> excellent blending quality, often smoother than Lattafa.</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    /* DATABASE: curated from Indian fragrance communities (r/DesiFragranceAddicts)
+       Prices are estimates in INR.
+    */
+    const perfumes = [
+        // --- FRESH / SUMMER / BLUE (MEN) ---
+        {
+            ogName: "Creed Aventus",
+            cloneName: "Armaf Club De Nuit Intense Man (Pure Parfum)",
+            brand: "Armaf",
+            price: 3800,
+            similarity: 95,
+            gender: "Male",
+            season: "All Year",
+            category: "Citrus / Smoky",
+            desc: "The king of clones. Smoky pineapple. Massive projection."
+        },
+        {
+            ogName: "Dior Sauvage Elixir",
+            cloneName: "Lattafa Asad",
+            brand: "Lattafa",
+            price: 1600,
+            similarity: 90,
+            gender: "Male",
+            season: "Winter",
+            category: "Spicy / Vanilla",
+            desc: "Spicy, warm, and extremely potent. Excellent winter signature."
+        },
+        {
+            ogName: "Bvlgari Tygar",
+            cloneName: "Afnan Turathi Blue",
+            brand: "Afnan",
+            price: 2600,
+            similarity: 92,
+            gender: "Male",
+            season: "Summer",
+            category: "Grapefruit / Musk",
+            desc: "Sophisticated citrus. Smells expensive and lasts forever in Indian heat."
+        },
+        {
+            ogName: "YSL Y EDP",
+            cloneName: "Lattafa Fakhar Black",
+            brand: "Lattafa",
+            price: 1900,
+            similarity: 94,
+            gender: "Male",
+            season: "All Year",
+            category: "Apple / Sage",
+            desc: "Sweet blue fragrance. Perfect for office or college."
+        },
+        {
+            ogName: "Acqua Di Gio Profumo",
+            cloneName: "Lattafa Suqraat",
+            brand: "Lattafa",
+            price: 1600,
+            similarity: 88,
+            gender: "Male",
+            season: "Summer",
+            category: "Aquatic / Incense",
+            desc: "Classy aquatic scent. Lighter performance but very close scent profile."
+        },
+         {
+            ogName: "Louis Vuitton Imagination",
+            cloneName: "Zara Sunrise on the Red Sand Dunes",
+            brand: "Zara",
+            price: 2290,
+            similarity: 85,
+            gender: "Male",
+            season: "Summer",
+            category: "Citrus / Tea",
+            desc: "Creamy citrus and tea. Elegant but requires re-application."
+        },
+        {
+            ogName: "Versace Pour Homme",
+            cloneName: "Maison Alhambra Blue de Chance",
+            brand: "Maison Alhambra",
+            price: 1400,
+            similarity: 92,
+            gender: "Male",
+            season: "Summer",
+            category: "Fresh / Floral",
+            desc: "Clean, soapy, lemon freshness. Gym or office safe."
+        },
+
+        // --- CLUBBING / SWEET / WINTER (MEN) ---
+        {
+            ogName: "Jean Paul Gaultier Ultra Male",
+            cloneName: "Afnan 9PM",
+            brand: "Afnan",
+            price: 2300,
+            similarity: 96,
+            gender: "Male",
+            season: "Winter",
+            category: "Bubblegum / Vanilla",
+            desc: "The ultimate party fragrance. Sweet pear and vanilla. Beast mode."
+        },
+        {
+            ogName: "Versace Eros",
+            cloneName: "Maison Alhambra Versencia Oro",
+            brand: "Maison Alhambra",
+            price: 1300,
+            similarity: 93,
+            gender: "Male",
+            season: "All Year",
+            category: "Mint / Vanilla",
+            desc: "Loud, minty sweetness. Great for casual evenings."
+        },
+        {
+            ogName: "Viktor&Rolf Spicebomb Extreme",
+            cloneName: "Pendora Scents Camero Tech",
+            brand: "Paris Corner",
+            price: 1500,
+            similarity: 85,
+            gender: "Male",
+            season: "Winter",
+            category: "Tobacco / Spice",
+            desc: "Warm spicy grenade. Cozy for cold Delhi nights."
+        },
+
+        // --- NICHE / LUXURY CLONES (UNISEX/MEN) ---
+        {
+            ogName: "Kilian Angels' Share",
+            cloneName: "Lattafa Khamrah / Qahwa",
+            brand: "Lattafa",
+            price: 2400,
+            similarity: 85,
+            gender: "Unisex",
+            season: "Winter",
+            category: "Dates / Cinnamon",
+            desc: "Not a 1:1 clone, but a masterpiece twist. Sweet, boozy apple pie vibe."
+        },
+        {
+            ogName: "Tom Ford Oud Wood",
+            cloneName: "Maison Alhambra Woody Oud",
+            brand: "Maison Alhambra",
+            price: 1600,
+            similarity: 95,
+            gender: "Male",
+            season: "Winter",
+            category: "Woody",
+            desc: "Very close to the OG. Refined, classy wood scent. Moderate longevity."
+        },
+        {
+            ogName: "Tom Ford Tobacco Vanille",
+            cloneName: "Pendora Charuto Tobacco Vanille",
+            brand: "Paris Corner",
+            price: 1500,
+            similarity: 92,
+            gender: "Unisex",
+            season: "Winter",
+            category: "Tobacco / Vanilla",
+            desc: "Smells like expensive pipe tobacco and vanilla. Very mature."
+        },
+        {
+            ogName: "MFK Baccarat Rouge 540",
+            cloneName: "Armaf Club De Nuit Untold",
+            brand: "Armaf",
+            price: 4500,
+            similarity: 98,
+            gender: "Unisex",
+            season: "All Year",
+            category: "Saffron / Ambergris",
+            desc: "Cotton candy sweetness with metallic edge. Massive projection."
+        },
+        {
+            ogName: "Parfums de Marly Layton",
+            cloneName: "Al Haramain Detour Noir",
+            brand: "Al Haramain",
+            price: 2500,
+            similarity: 95,
+            gender: "Male",
+            season: "Winter",
+            category: "Apple / Vanilla",
+            desc: "Ugly bottle, amazing scent. Spicy apple pie."
+        },
+        {
+            ogName: "Nishane Hacivat",
+            cloneName: "Afnan Supremacy Not Only Intense",
+            brand: "Afnan",
+            price: 4200,
+            similarity: 90,
+            gender: "Male",
+            season: "All Year",
+            category: "Oakmoss / Pineapple",
+            desc: "A darker, mossier version of the Aventus DNA. Nuclear performance."
+        },
+
+        // --- FEMALE / FLORAL / GOURMAND ---
+        {
+            ogName: "Carolina Herrera Good Girl",
+            cloneName: "Lattafa Bade'e Al Oud Sublime",
+            brand: "Lattafa",
+            price: 2100,
+            similarity: 85,
+            gender: "Female",
+            season: "Winter",
+            category: "Fruity / Rose",
+            desc: "A jammy red fruit twist on the Good Girl DNA. Very long lasting."
+        },
+        {
+            ogName: "YSL Libre",
+            cloneName: "Maison Alhambra Libbra",
+            brand: "Maison Alhambra",
+            price: 1500,
+            similarity: 94,
+            gender: "Female",
+            season: "All Year",
+            category: "Lavender / Blossom",
+            desc: "The boss-lady scent. Clean lavender and orange blossom."
+        },
+        {
+            ogName: "Parfums de Marly Delina",
+            cloneName: "Maison Alhambra Delilah",
+            brand: "Maison Alhambra",
+            price: 1700,
+            similarity: 96,
+            gender: "Female",
+            season: "All Year",
+            category: "Rose / Lychee",
+            desc: "Very feminine, tart lychee and rose. Great projection."
+        },
+        {
+            ogName: "Billie Eilish No. 1",
+            cloneName: "Lattafa Nebras",
+            brand: "Lattafa",
+            price: 2400,
+            similarity: 98,
+            gender: "Female",
+            season: "Winter",
+            category: "Chocolate / Vanilla",
+            desc: "Sugared berries and cacao. incredible longevity."
+        },
+        {
+            ogName: "Dior Hypnotic Poison",
+            cloneName: "Police Forbidden",
+            brand: "Police",
+            price: 1500,
+            similarity: 85,
+            gender: "Female",
+            season: "Winter",
+            category: "Almond / Vanilla",
+            desc: "Affordable sweet almond and vanilla scent."
+        },
+        {
+            ogName: "Kayali Vanilla 28",
+            cloneName: "Zara Supreme Vanilla",
+            brand: "Zara",
+            price: 2290,
+            similarity: 90,
+            gender: "Female",
+            season: "Winter",
+            category: "Brown Sugar",
+            desc: "Warm, boozy vanilla. Great for layering."
+        }
+    ];
+
+    const grid = document.getElementById('grid');
+    const searchInput = document.getElementById('searchInput');
+    const sortSelect = document.getElementById('sortSelect');
+    const seasonTabs = document.querySelectorAll('.tab[data-type="season"]');
+    const genderTabs = document.querySelectorAll('.tab[data-type="gender"]');
+
+    let state = {
+        search: '',
+        season: 'all',
+        gender: 'all',
+        sort: 'popularity'
+    };
+
+    function getAmazonLink(term) {
+        return `https://www.amazon.in/s?k=${encodeURIComponent(term)}`;
+    }
+
+    function render() {
+        // Filter
+        let filtered = perfumes.filter(p => {
+            const matchesSearch = 
+                p.cloneName.toLowerCase().includes(state.search) || 
+                p.ogName.toLowerCase().includes(state.search) || 
+                p.brand.toLowerCase().includes(state.search) ||
+                p.category.toLowerCase().includes(state.search);
+            
+            const matchesSeason = state.season === 'all' || p.season === state.season || p.season === 'All Year';
+            const matchesGender = state.gender === 'all' || p.gender === state.gender || (p.gender === 'Unisex' && state.gender !== 'all');
+
+            return matchesSearch && matchesSeason && matchesGender;
+        });
+
+        // Sort
+        filtered.sort((a, b) => {
+            if (state.sort === 'price_asc') return a.price - b.price;
+            if (state.sort === 'price_desc') return b.price - a.price;
+            if (state.sort === 'similarity') return b.similarity - a.similarity;
+            // Popularity is essentially default array order (curated top to bottom)
+            return 0;
+        });
+
+        // HTML Generation
+        grid.innerHTML = filtered.map(item => `
+            <div class="card">
+                <div class="card-header">
+                    <div>
+                        <div class="perfume-name">
+                            ${item.cloneName} 
+                            ${item.gender === 'Male' ? '<span class="gender-male" title="Men">♂</span>' : ''}
+                            ${item.gender === 'Female' ? '<span class="gender-female" title="Women">♀</span>' : ''}
+                            ${item.gender === 'Unisex' ? '<span class="gender-unisex" title="Unisex">⚥</span>' : ''}
+                        </div>
+                        <div class="perfume-brand">${item.brand}</div>
+                    </div>
+                    <span class="match-badge">${item.similarity}% Match</span>
+                </div>
+
+                <div class="comparison-box">
+                    <span class="comparison-label">Inspired By</span>
+                    <span class="og-name">${item.ogName}</span>
+                </div>
+
+                <div class="tags">
+                    <span class="tag">
+                        ${item.season === 'Summer' ? '☀️' : item.season === 'Winter' ? '❄️' : '♾️'} 
+                        ${item.season}
+                    </span>
+                    <span class="tag">🏷️ ₹${item.price}</span>
+                    <span class="tag">👃 ${item.category}</span>
+                </div>
+
+                <p style="font-size: 0.9rem; color: #636e72; margin-bottom: 20px; flex-grow: 1;">
+                    ${item.desc}
+                </p>
+
+                <a href="${getAmazonLink(item.cloneName)}" target="_blank" class="buy-btn">
+                    <span>amazon</span>.in check price
+                </a>
+            </div>
+        `).join('');
+
+        if (filtered.length === 0) {
+            grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #999;">No perfumes found matching your criteria.</div>';
+        }
+    }
+
+    // Event Listeners
+    searchInput.addEventListener('input', (e) => { state.search = e.target.value.toLowerCase(); render(); });
+    sortSelect.addEventListener('change', (e) => { state.sort = e.target.value; render(); });
+
+    seasonTabs.forEach(tab => tab.addEventListener('click', () => {
+        seasonTabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        state.season = tab.dataset.val;
+        render();
+    }));
+
+    genderTabs.forEach(tab => tab.addEventListener('click', () => {
+        genderTabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        state.gender = tab.dataset.val;
+        render();
+    }));
+
+    // Init
+    render();
+
+</script>
+
+</body>
+</html>
